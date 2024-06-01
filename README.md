@@ -1,4 +1,3 @@
-markdown_content = """
 # Eye State Detection Program
 
 This program detects if a person in a given image has their eyes closed using pre-trained models for face detection, facial landmarks detection, and eye state classification.
