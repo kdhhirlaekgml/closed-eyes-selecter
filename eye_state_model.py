@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout, BatchNormalization
 from tensorflow.keras.preprocessing.image import img_to_array, array_to_img
 import imgaug.augmenters as iaa
 
@@ -14,7 +14,9 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 # 데이터 증강을 위한 이미지 변환기 초기화
 augmenter = iaa.Sequential([
     iaa.Fliplr(0.5),  # 좌우 반전
-    iaa.Affine(rotate=(-10, 10))  # 이미지 회전
+    iaa.Affine(rotate=(-10, 10)),  # 이미지 회전
+    iaa.GaussianBlur(sigma=(0, 1.0)),  # 가우시안 블러
+    iaa.Multiply((0.8, 1.2))  # 밝기 조절
 ])
 
 def load_images_from_folder(folder, label, image_size=(24, 24)):
@@ -26,6 +28,7 @@ def load_images_from_folder(folder, label, image_size=(24, 24)):
             img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
             if img is not None:
                 img = cv2.resize(img, image_size)
+                img = img.astype(np.uint8)  # 이미지 데이터 타입을 uint8로 변경
                 images.append(img)
                 labels.append(label)
             else:
@@ -54,10 +57,9 @@ augmented_images = []
 augmented_labels = []
 
 for img, label in zip(images, labels):
-    augmented_img = augmenter.augment_image(img)
+    augmented_img = augmenter.augment_image(img.astype(np.uint8))  # 이미지 데이터 타입을 uint8로 변경
     augmented_images.append(augmented_img)
     augmented_labels.append(label)
-    # 추가된 부분: 증강된 이미지를 저장합니다.
     cv2.imwrite(f"augmented_images/{len(augmented_images)}.jpg", augmented_img)
 
 augmented_images = np.array(augmented_images)
@@ -69,24 +71,25 @@ X_train, X_test, y_train, y_test = train_test_split(augmented_images, augmented_
 # 모델 구성
 model = Sequential([
     Conv2D(32, (3, 3), activation='relu', input_shape=(24, 24, 1)),
+    BatchNormalization(),
     MaxPooling2D((2, 2)),
     Conv2D(64, (3, 3), activation='relu'),
+    BatchNormalization(),
     MaxPooling2D((2, 2)),
     Conv2D(128, (3, 3), activation='relu'),
+    BatchNormalization(),
     MaxPooling2D((2, 2)),
     Flatten(),
     Dense(256, activation='relu'),
     Dropout(0.5),
-    Dense(1, activation='sigmoid')  # 출력 뉴런 수 변경
+    Dense(1, activation='sigmoid')
 ])
 
 # 모델 컴파일
-model.compile(optimizer='adam', 
-              loss='binary_crossentropy',  # 손실 함수 변경
-              metrics=['accuracy'])
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
 # 모델 학습
-history = model.fit(X_train, y_train, batch_size=32, epochs=10, validation_data=(X_test, y_test))
+history = model.fit(X_train, y_train, batch_size=32, epochs=20, validation_data=(X_test, y_test))
 
 # 모델 저장
 model.save('eye_state_model.h5')
