@@ -1,3 +1,4 @@
+markdown_content = """
 # Eye State Detection Program
 
 This program detects if a person in a given image has their eyes closed using pre-trained models for face detection, facial landmarks detection, and eye state classification.
@@ -9,6 +10,7 @@ This program detects if a person in a given image has their eyes closed using pr
 - [Usage](#usage)
 - [File Descriptions](#file-descriptions)
 - [How It Works](#how-it-works)
+- [Error Handling](#error-handling)
 - [Credits](#credits)
 
 ## Requirements
@@ -51,19 +53,6 @@ pip install -r requirements.txt
 ```
 
 
-## Usage
-
-1. Place the images you want to analyze in a directory.
-
-2. Update the `image_dir` variable in the script to point to the directory containing your images.
-
-3. Run the script:
-
-```bash
-python detect_closed_eyes.py
-```
-
-
 4. The program will output the paths of the images where eyes are detected to be closed.
 
 ## File Descriptions
@@ -84,6 +73,14 @@ python detect_closed_eyes.py
 
 5. **Result Output**: If either eye in an image is detected as closed, the image path is added to the list of images with closed eyes, which is then printed.
 
+## Error Handling
+
+The script includes basic error handling to manage potential issues, such as:
+
+- **Image Reading Errors**: If an image cannot be read, the script will print an error message and skip the image.
+- **Face Detection Failures**: If no faces are detected in an image, the script will continue to the next image without errors.
+- **Exceptions**: General exceptions are caught and printed to help with debugging.
+
 ## Credits
 
 This program utilizes several pre-trained models and libraries:
@@ -91,3 +88,6 @@ This program utilizes several pre-trained models and libraries:
 - [OpenCV](https://opencv.org/): An open-source computer vision library.
 - [Dlib](http://dlib.net/): A toolkit for making real-world machine learning and data analysis applications.
 - [TensorFlow](https://www.tensorflow.org/): An open-source platform for machine learning.
+"""
+
+
